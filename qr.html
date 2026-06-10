@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scan Me 💕 — Birthday Surprise</title>
+  <meta name="description" content="Scan this heart QR code to open the birthday surprise!" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --pink: #ff6b9d;
+      --rose: #ff3f80;
+      --purple: #c770f0;
+      --gold: #ffd700;
+      --bg-dark: #0d0015;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg-dark);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      overflow-x: hidden;
+    }
+
+    /* Starfield background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(199,112,240,.2) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 50% 100%, rgba(255,63,128,.15) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: #fff;
+      border-radius: 50%;
+      animation: twinkle var(--d, 3s) ease-in-out infinite var(--delay, 0s);
+      opacity: 0;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0; transform: scale(0.5); }
+      50%       { opacity: var(--op, 0.7); transform: scale(1.2); }
+    }
+
+    /* ── MAIN CONTENT ── */
+    .page-wrap {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.6rem;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    /* badge */
+    .badge {
+      display: inline-block;
+      background: rgba(255,107,157,.12);
+      border: 1px solid rgba(255,107,157,.35);
+      color: var(--pink);
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: .4rem 1.2rem;
+      border-radius: 50px;
+      backdrop-filter: blur(8px);
+      animation: fadeDown .8s ease both;
+    }
+
+    /* title */
+    .page-title {
+      font-family: 'Dancing Script', cursive;
+      font-size: clamp(2.2rem, 8vw, 3.6rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, #fff 0%, var(--pink) 50%, var(--purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 24px rgba(255,107,157,.5));
+      text-align: center;
+      line-height: 1.15;
+      animation: fadeDown .8s .1s ease both;
+    }
+
+    .page-subtitle {
+      font-size: .92rem;
+      color: rgba(255,255,255,.5);
+      text-align: center;
+      animation: fadeDown .8s .2s ease both;
+    }
+
+    /* ── QR CARD ── */
+    .qr-card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(199,112,240,.22);
+      border-radius: 28px;
+      padding: 2rem;
+      backdrop-filter: blur(16px);
+      box-shadow:
+        0 20px 60px rgba(0,0,0,.45),
+        0 0 0 1px rgba(255,107,157,.08) inset,
+        0 0 80px rgba(199,112,240,.06) inset;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.2rem;
+      animation: fadeUp .9s .3s ease both;
+      position: relative;
+    }
+
+    /* animated border glow */
+    .qr-card::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(255,107,157,.3), rgba(199,112,240,.3), rgba(255,107,157,.3));
+      background-size: 300% 300%;
+      animation: borderGlow 4s ease infinite;
+      z-index: -1;
+      filter: blur(1px);
+    }
+
+    @keyframes borderGlow {
+      0%, 100% { background-position: 0% 50%; }
+      50%       { background-position: 100% 50%; }
+    }
+
+    /* canvas wrapper with glow */
+    .canvas-wrap {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .canvas-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      box-shadow: inset 0 0 30px rgba(199,112,240,.08);
+      pointer-events: none;
+    }
+
+    #qr-canvas {
+      display: block;
+      border-radius: 16px;
+      max-width: min(380px, 88vw);
+      height: auto;
+      animation: pulseGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { filter: drop-shadow(0 0 12px rgba(255,107,157,.4)); }
+      50%       { filter: drop-shadow(0 0 28px rgba(199,112,240,.7)); }
+    }
+
+    /* URL chip */
+    .url-chip {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 50px;
+      padding: .45rem 1.1rem;
+      font-size: .78rem;
+      color: rgba(255,255,255,.55);
+      letter-spacing: .3px;
+      animation: fadeDown .8s .4s ease both;
+    }
+
+    .url-chip span { color: var(--pink); }
+
+    /* ── BUTTONS ── */
+    .btn-group {
+      display: flex;
+      gap: .9rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeUp .8s .5s ease both;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: .9rem;
+      padding: .75rem 1.8rem;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform .25s, box-shadow .25s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--rose), var(--purple));
+      color: #fff;
+      box-shadow: 0 8px 28px rgba(255,63,128,.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px) scale(1.04);
+      box-shadow: 0 14px 38px rgba(255,63,128,.6);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: rgba(255,255,255,.7);
+      border: 1.5px solid rgba(255,255,255,.2);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--pink);
+      color: var(--pink);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255,107,157,.2);
+    }
+
+    /* ── LOADING STATE ── */
+    #loading-msg {
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.4rem;
+      color: var(--pink);
+      animation: heartbeat 1s ease-in-out infinite;
+    }
+
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.15); }
+    }
+
+    /* ── FOOTER ── */
+    .footer-text {
+      font-size: .78rem;
+      color: rgba(255,255,255,.25);
+      text-align: center;
+      animation: fadeUp .8s .6s ease both;
+    }
+
+    .footer-text a {
+      color: var(--pink);
+      text-decoration: none;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 420px) {
+      .qr-card { padding: 1.4rem 1rem; }
+      .btn { padding: .65rem 1.4rem; font-size: .82rem; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Stars -->
+  <div class="stars" id="stars"></div>
+
+  <div class="page-wrap">
+
+    <div class="badge">✨ A Special Surprise ✨</div>
+
+    <h1 class="page-title">Scan to Open<br/>Birthday Surprise 🎂</h1>
+
+    <p class="page-subtitle">Point your camera at the heart below 📱</p>
+
+    <div class="qr-card">
+      <div id="loading-msg">Generating ❤️</div>
+      <div class="canvas-wrap" id="canvas-wrap" style="display:none">
+        <canvas id="qr-canvas"></canvas>
+      </div>
+    </div>
+
+    <div class="url-chip">
+      🔗 <span>MyintZaw148.github.io/my-love</span>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" id="download-btn" style="display:none">
+        💾 Save QR Code
+      </button>
+      <a href="index.html" class="btn btn-outline">
+        🎂 Open Birthday Page
+      </a>
+    </div>
+
+    <p class="footer-text">
+      Made with ❤️ &nbsp;·&nbsp;
+      <a href="index.html">Birthday Surprise</a>
+    </p>
+
+  </div>
+
+  <script>
+    /* ── CONFIG ── */
+    const TARGET_URL = 'https://MyintZaw148.github.io/my-love/';
+
+    /* ── STARS ── */
+    const starsEl = document.getElementById('stars');
+    for (let i = 0; i < 80; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      s.style.cssText = `
+        left: ${Math.random() * 100}%;
+        top: ${Math.random() * 100}%;
+        --d: ${2 + Math.random() * 4}s;
+        --delay: ${Math.random() * 4}s;
+        --op: ${0.3 + Math.random() * 0.7};
+        width: ${1 + Math.random() * 2}px;
+        height: ${1 + Math.random() * 2}px;
+      `;
+      starsEl.appendChild(s);
+    }
+
+    /* ── HEART MODULE DRAW ── */
+    function drawHeartModule(ctx, cx, cy, size) {
+      const scale = size / 32;
+      // Visual center of heart is ~2.75*scale below parametric origin;
+      // shift origin up so heart centers on (cx, cy)
+      const offsetY = -2.75 * scale;
+      ctx.save();
+      ctx.translate(cx, cy + offsetY);
+      ctx.beginPath();
+      let first = true;
+      for (let t = 0; t <= Math.PI * 2 + 0.01; t += 0.04) {
+        const x = scale * 16 * Math.pow(Math.sin(t), 3);
+        const y = -scale * (
+          13 * Math.cos(t) -
+           5 * Math.cos(2 * t) -
+           2 * Math.cos(3 * t) -
+               Math.cos(4 * t)
+        );
+        if (first) { ctx.moveTo(x, y); first = false; }
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    /* ── GENERATE QR ── */
+    function generateHeartQR() {
+      const qr = qrcode(0, 'H');      // type 0 = auto version, H = 30% error correction
+      qr.addData(TARGET_URL);
+      qr.make();
+
+      const count      = qr.getModuleCount();
+      const moduleSize = 14;           // px per module
+      const padding    = 50;           // canvas border
+      const size       = count * moduleSize + padding * 2;
+
+      const canvas = document.getElementById('qr-canvas');
+      canvas.width  = size;
+      canvas.height = size;
+
+      // CSS display size (max 380px)
+      const displaySize = Math.min(380, window.innerWidth * 0.82);
+      canvas.style.width  = displaySize + 'px';
+      canvas.style.height = displaySize + 'px';
+
+      const ctx = canvas.getContext('2d');
+
+      /* --- background --- */
+      ctx.fillStyle = '#0d0015';
+      ctx.fillRect(0, 0, size, size);
+
+      // subtle center glow
+      const bgGrad = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size * 0.6);
+      bgGrad.addColorStop(0,   'rgba(199,112,240,0.10)');
+      bgGrad.addColorStop(0.5, 'rgba(255,107,157,0.04)');
+      bgGrad.addColorStop(1,   'transparent');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, size, size);
+
+      /* --- gradient for dark modules --- */
+      const grad = ctx.createLinearGradient(padding, padding, size - padding, size - padding);
+      grad.addColorStop(0,    '#ff8fc5');
+      grad.addColorStop(0.4,  '#ff3f80');
+      grad.addColorStop(0.7,  '#c770f0');
+      grad.addColorStop(1,    '#ff6b9d');
+
+      /* --- draw modules --- */
+      for (let row = 0; row < count; row++) {
+        for (let col = 0; col < count; col++) {
+          const px = padding + col * moduleSize;
+          const py = padding + row * moduleSize;
+          const cx = px + moduleSize / 2;
+          const cy = py + moduleSize / 2;
+
+          if (qr.isDark(row, col)) {
+            // glow shadow pass
+            ctx.shadowColor = 'rgba(255, 107, 157, 0.55)';
+            ctx.shadowBlur  = 5;
+            ctx.fillStyle   = grad;
+            drawHeartModule(ctx, cx, cy, moduleSize * 0.85);
+            ctx.shadowBlur  = 0;
+          }
+        }
+      }
+
+      /* --- decorative corner hearts (large) --- */
+      const corners = [
+        { x: padding * 0.45, y: padding * 0.45 },
+        { x: size - padding * 0.45, y: padding * 0.45 },
+        { x: padding * 0.45, y: size - padding * 0.45 },
+        { x: size - padding * 0.45, y: size - padding * 0.45 },
+      ];
+      ctx.fillStyle = 'rgba(255, 107, 157, 0.18)';
+      ctx.shadowBlur = 0;
+      corners.forEach(c => drawHeartModule(ctx, c.x, c.y, 22));
+
+      /* show canvas, hide loader */
+      document.getElementById('loading-msg').style.display = 'none';
+      document.getElementById('canvas-wrap').style.display = 'block';
+      document.getElementById('download-btn').style.display = 'inline-flex';
+    }
+
+    /* ── DOWNLOAD ── */
+    document.getElementById('download-btn').addEventListener('click', function () {
+      const canvas = document.getElementById('qr-canvas');
+      const link   = document.createElement('a');
+      link.download = 'heart-qr-birthday.png';
+      link.href     = canvas.toDataURL('image/png');
+      link.click();
+    });
+
+    /* ── RUN ── */
+    window.addEventListener('load', generateHeartQR);
+  </script>
+
+</body>
+</html>
